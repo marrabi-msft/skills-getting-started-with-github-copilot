@@ -26,8 +26,16 @@ document.addEventListener("DOMContentLoaded", () => {
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
           <p><strong>Participants:</strong></p>
-          <ul>
-            ${details.participants.map(participant => `<li>${participant}</li>`).join("")}
+          <ul style="list-style-type: none; padding: 0;">
+            ${details.participants
+              .map(
+                (participant) => `
+                  <li>
+                    ${participant} <button class="delete-participant" data-activity="${name}" data-participant="${participant}">❌</button>
+                  </li>
+                `
+              )
+              .join("")}
           </ul>
         `;
 
@@ -38,6 +46,30 @@ document.addEventListener("DOMContentLoaded", () => {
         option.value = name;
         option.textContent = name;
         activitySelect.appendChild(option);
+      });
+
+      document.querySelectorAll(".delete-participant").forEach((button) => {
+        button.addEventListener("click", async (event) => {
+          const activity = button.dataset.activity;
+          const participant = button.dataset.participant;
+
+          try {
+            const response = await fetch(
+              `/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(participant)}`,
+              {
+                method: "POST",
+              }
+            );
+
+            if (response.ok) {
+              button.parentElement.remove();
+            } else {
+              console.error("Failed to unregister participant");
+            }
+          } catch (error) {
+            console.error("Error unregistering participant:", error);
+          }
+        });
       });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
@@ -75,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (activityCard) {
           const spotsLeft = parseInt(activityCard.querySelector("p strong").nextSibling.textContent) - 1;
           const participantsList = activityCard.querySelector("ul");
-          participantsList.innerHTML += `<li>${email}</li>`;
+          participantsList.innerHTML += `<li>${email} <button class="delete-participant" data-activity="${activity}" data-participant="${email}">❌</button></li>`;
           activityCard.querySelector("p strong").nextSibling.textContent = `${spotsLeft} spots left`;
         }
       } else {
