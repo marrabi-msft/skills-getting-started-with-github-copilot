@@ -25,6 +25,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <p><strong>Participants:</strong></p>
+          <ul>
+            ${details.participants.map(participant => `<li>${participant}</li>`).join("")}
+          </ul>
         `;
 
         activitiesList.appendChild(activityCard);
@@ -62,6 +66,18 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+
+        // Update the relevant activity card
+        const activityCard = Array.from(activitiesList.children).find(card =>
+          card.querySelector("h4").textContent === activity
+        );
+
+        if (activityCard) {
+          const spotsLeft = parseInt(activityCard.querySelector("p strong").nextSibling.textContent) - 1;
+          const participantsList = activityCard.querySelector("ul");
+          participantsList.innerHTML += `<li>${email}</li>`;
+          activityCard.querySelector("p strong").nextSibling.textContent = `${spotsLeft} spots left`;
+        }
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
